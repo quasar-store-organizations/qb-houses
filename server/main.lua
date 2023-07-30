@@ -6,7 +6,7 @@ local housesLoaded = false
 
 -- Threads
 
-CreateThread(function()
+local function UpdateHouse()
     local HouseGarages = {}
     local result = MySQL.query.await('SELECT * FROM houselocations', {})
     if result[1] then
@@ -28,13 +28,21 @@ CreateThread(function()
             }
             HouseGarages[v.name] = {
                 label = v.label,
-                takeVehicle = garage
+                takeVehicle = garage,
+                shell = v.garageShell and json.decode(v.garageShell) or {}
             }
         end
     end
-    TriggerClientEvent("qb-garages:client:houseGarageConfig", -1, HouseGarages)
-    TriggerClientEvent("qb-houses:client:setHouseConfig", -1, Config.Houses)
+    TriggerClientEvent('advancedgarages:GetShellGarageData', -1, HouseGarages)
+    TriggerClientEvent('qb-houses:client:setHouseConfig', -1, Config.Houses)
+end
+
+RegisterNetEvent('QBCore:Server:PlayerLoaded')
+AddEventHandler('QBCore:Server:PlayerLoaded', function(playerData)
+    UpdateHouse()
 end)
+
+CreateThread(UpdateHouse)
 
 CreateThread(function()
     while true do
@@ -196,14 +204,14 @@ RegisterNetEvent('qb-houses:server:addNewHouse', function(street, coords, price,
     TriggerEvent('qb-log:server:CreateLog', 'house', Lang:t("log.house_created"), 'green', Lang:t("log.house_address", {label = label, price = price, tier = tier, agent = GetPlayerName(src)}))
 end)
 
-RegisterNetEvent('qb-houses:server:addGarage', function(house, coords)
+RegisterNetEvent('qb-houses:server:addGarage', function(house, coords, shellData)
     local src = source
     MySQL.update('UPDATE houselocations SET garage = ? WHERE name = ?', {json.encode(coords), house})
     local garageInfo = {
         label = Config.Houses[house].adress,
         takeVehicle = coords
     }
-    TriggerClientEvent("qb-garages:client:addHouseGarage", -1, house, garageInfo)
+    TriggerClientEvent('advancedgarages:AddShellGarage', -1, house, garageInfo)
     TriggerClientEvent('QBCore:Notify', src, Lang:t("info.added_garage", {value = garageInfo.label}))
 end)
 

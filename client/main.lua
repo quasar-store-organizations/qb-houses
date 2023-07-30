@@ -529,7 +529,7 @@ local function SetClosestHouse()
             end, ClosestHouse)
         end
     end
-    TriggerEvent('qb-garages:client:setHouseGarage', ClosestHouse, HasHouseKey)
+    TriggerEvent('advancedgarages:SetShellGarageData', ClosestHouse, HasHouseKey)
 end
 
 local function setHouseLocations()
@@ -1091,7 +1091,8 @@ AddEventHandler('QBCore:Client:OnPlayerLoaded', function()
     TriggerEvent('qb-houses:client:setupHouseBlips')
     if Config.UnownedBlips then TriggerEvent('qb-houses:client:setupHouseBlips2') end
     Wait(100)
-    TriggerEvent('qb-garages:client:setHouseGarage', ClosestHouse, HasHouseKey)
+    TriggerEvent('advancedgarages:SetShellGarageData', ClosestHouse, HasHouseKey)
+   -- TriggerEvent('qb-garages:client:setHouseGarage', ClosestHouse, HasHouseKey)
     TriggerServerEvent("qb-houses:server:setHouses")
 end)
 
@@ -1139,7 +1140,11 @@ RegisterNetEvent('qb-houses:client:addGarage', function()
             z = pos.z,
             w = heading,
         }
-        TriggerServerEvent('qb-houses:server:addGarage', ClosestHouse, coords)
+        local shellId = exports['qs-advancedgarages']:ShowCaseOfGarageShell(nil, 'vehicle')
+        local shellData = {
+            shell = shellId,
+        }
+        TriggerServerEvent('qb-houses:server:addGarage', ClosestHouse, coords, shellData)
     else
         QBCore.Functions.Notify(Lang:t("error.no_house"), "error")
     end
@@ -1218,6 +1223,7 @@ end)
 RegisterNetEvent('qb-houses:client:refreshHouse', function()
     Wait(100)
     SetClosestHouse()
+    TriggerEvent('advancedgarages:SetShellGarageData', ClosestHouse, HasHouseKey)
 end)
 
 RegisterNetEvent('qb-houses:client:SpawnInApartment', function(house)
@@ -1547,7 +1553,7 @@ CreateThread(function ()
         TriggerEvent('qb-houses:client:setupHouseBlips2')
     end
     Wait(wait)
-    TriggerEvent('qb-garages:client:setHouseGarage', ClosestHouse, HasHouseKey)
+    TriggerEvent('advancedgarages:SetShellGarageData', ClosestHouse, HasHouseKey)
     TriggerServerEvent("qb-houses:server:setHouses")
 
     while true do
